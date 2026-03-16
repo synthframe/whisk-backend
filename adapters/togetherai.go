@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 )
 
 type TogetherAI struct {
@@ -85,65 +86,23 @@ func (t *TogetherAI) AnalyzeImage(imageBase64 string, slotType string) (string, 
 	return result.Choices[0].Message.Content, nil
 }
 
-// GenerateImage: generate image from prompt, return image bytes
+// GenerateImage: generate image from prompt via Pollinations.ai (no credits required)
 func (t *TogetherAI) GenerateImage(prompt string) ([]byte, error) {
-	payload := map[string]interface{}{
-		"model":  "black-forest-labs/FLUX.1-schnell-Free",
-		"prompt": prompt,
-		"width":  1024,
-		"height": 1024,
-		"steps":  4,
-		"n":      1,
-	}
+	apiURL := "https://image.pollinations.ai/prompt/" + url.PathEscape(prompt) +
+		"?width=1024&height=1024&model=flux&nologo=true"
 
-	body, err := json.Marshal(payload)
+	resp, err := t.HTTPClient.Get(apiURL)
 	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", "https://api.together.xyz/v1/images/generations", bytes.NewReader(body))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Authorization", "Bearer "+t.APIKey)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := t.HTTPClient.Do(req)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("pollinations.ai request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		respBody, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("together.ai image gen error %d: %s", resp.StatusCode, string(respBody))
+		return nil, fmt.Errorf("pollinations.ai error %d: %s", resp.StatusCode, string(respBody))
 	}
 
-	var result struct {
-		Data []struct {
-			URL     string `json:"url"`
-			B64JSON string `json:"b64_json"`
-		} `json:"data"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, err
-	}
-	if len(result.Data) == 0 {
-		return nil, fmt.Errorf("no image data returned")
-	}
-
-	imgURL := result.Data[0].URL
-	if imgURL == "" {
-		return nil, fmt.Errorf("empty image URL returned")
-	}
-
-	imgResp, err := t.HTTPClient.Get(imgURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to download generated image: %w", err)
-	}
-	defer imgResp.Body.Close()
-
-	imgBytes, err := io.ReadAll(imgResp.Body)
+	imgBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read image bytes: %w", err)
 	}
