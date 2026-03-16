@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 )
 
 type TogetherAI struct {
@@ -86,20 +85,30 @@ func (t *TogetherAI) AnalyzeImage(imageBase64 string, slotType string) (string, 
 	return result.Choices[0].Message.Content, nil
 }
 
-// GenerateImage: generate image from prompt via Pollinations.ai (no credits required)
+// GenerateImage: generate image via Cloudflare Workers AI (free, no credits required)
 func (t *TogetherAI) GenerateImage(prompt string) ([]byte, error) {
-	apiURL := "https://image.pollinations.ai/prompt/" + url.PathEscape(prompt) +
-		"?width=1024&height=1024&nologo=true"
-
-	resp, err := t.HTTPClient.Get(apiURL)
+	payload, err := json.Marshal(map[string]interface{}{
+		"prompt": prompt,
+		"width":  1024,
+		"height": 1024,
+	})
 	if err != nil {
-		return nil, fmt.Errorf("pollinations.ai request failed: %w", err)
+		return nil, err
+	}
+
+	resp, err := t.HTTPClient.Post(
+		"https://whisk-image-gen.teamxquare867.workers.dev",
+		"application/json",
+		bytes.NewReader(payload),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("cloudflare worker request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		respBody, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("pollinations.ai error %d: %s", resp.StatusCode, string(respBody))
+		return nil, fmt.Errorf("cloudflare worker error %d: %s", resp.StatusCode, string(respBody))
 	}
 
 	imgBytes, err := io.ReadAll(resp.Body)
