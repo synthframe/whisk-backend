@@ -89,7 +89,7 @@ func (t *TogetherAI) AnalyzeImage(imageBase64 string, slotType string) (string, 
 // GenerateImage: generate image from prompt via Pollinations.ai (no credits required)
 func (t *TogetherAI) GenerateImage(prompt string) ([]byte, error) {
 	apiURL := "https://image.pollinations.ai/prompt/" + url.PathEscape(prompt) +
-		"?width=1024&height=1024&model=flux&nologo=true"
+		"?width=1024&height=1024&nologo=true"
 
 	resp, err := t.HTTPClient.Get(apiURL)
 	if err != nil {
