@@ -43,9 +43,15 @@ func (g *GeneratorService) BuildPrompt(subject, scene, style, preset string) str
 	return master
 }
 
-func (g *GeneratorService) Generate(subject, scene, style, preset string) (string, error) {
+func (g *GeneratorService) Generate(subject, scene, style, preset string, width, height int) (string, error) {
 	prompt := g.BuildPrompt(subject, scene, style, preset)
-	imgBytes, err := g.adapter.GenerateImage(prompt)
+	if width <= 0 {
+		width = 1024
+	}
+	if height <= 0 {
+		height = 1024
+	}
+	imgBytes, err := g.adapter.GenerateImage(prompt, width, height)
 	if err != nil {
 		return "", err
 	}

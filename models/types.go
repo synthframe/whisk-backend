@@ -17,6 +17,8 @@ type GenerateRequest struct {
 	ScenePrompt   string `json:"scene_prompt"`
 	StylePrompt   string `json:"style_prompt"`
 	StylePreset   string `json:"style_preset"`
+	Width         int    `json:"width"`
+	Height        int    `json:"height"`
 }
 
 type GenerateResponse struct {
@@ -32,6 +34,8 @@ type BatchJobInput struct {
 	ScenePrompt   string `json:"scene_prompt"`
 	StylePrompt   string `json:"style_prompt"`
 	StylePreset   string `json:"style_preset"`
+	Width         int    `json:"width"`
+	Height        int    `json:"height"`
 }
 
 type BatchRequest struct {

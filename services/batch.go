@@ -92,7 +92,7 @@ func (b *BatchService) run(session *BatchSession, concurrency int) {
 				Payload:   map[string]interface{}{"index": i},
 			}
 
-			filename, err := b.generator.Generate(job.SubjectPrompt, job.ScenePrompt, job.StylePrompt, job.StylePreset)
+			filename, err := b.generator.Generate(job.SubjectPrompt, job.ScenePrompt, job.StylePrompt, job.StylePreset, job.Width, job.Height)
 
 			session.mu.Lock()
 			if err != nil {

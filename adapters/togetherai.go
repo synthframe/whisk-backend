@@ -58,11 +58,11 @@ func (t *TogetherAI) AnalyzeImage(imageBase64 string, slotType string) (string, 
 }
 
 // GenerateImage: generate image via Cloudflare Workers AI (free, no credits required)
-func (t *TogetherAI) GenerateImage(prompt string) ([]byte, error) {
+func (t *TogetherAI) GenerateImage(prompt string, width, height int) ([]byte, error) {
 	payload, err := json.Marshal(map[string]interface{}{
 		"prompt": prompt,
-		"width":  1024,
-		"height": 1024,
+		"width":  width,
+		"height": height,
 	})
 	if err != nil {
 		return nil, err

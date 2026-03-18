@@ -32,7 +32,7 @@ func GenerateHandler(generator *services.GeneratorService) gin.HandlerFunc {
 		generateJobs.Store(id, &generateJob{Status: "processing"})
 
 		go func() {
-			filename, err := generator.Generate(req.SubjectPrompt, req.ScenePrompt, req.StylePrompt, req.StylePreset)
+			filename, err := generator.Generate(req.SubjectPrompt, req.ScenePrompt, req.StylePrompt, req.StylePreset, req.Width, req.Height)
 			if err != nil {
 				generateJobs.Store(id, &generateJob{Status: "failed", Error: err.Error()})
 				return
