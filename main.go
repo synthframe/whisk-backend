@@ -78,6 +78,7 @@ func main() {
 			protected.GET("/batch/:id", handlers.BatchStatusHandler())
 			protected.GET("/batch/:id/stream", handlers.BatchStreamHandler())
 			protected.GET("/images", handlers.UserImagesHandler(dbPool))
+			protected.POST("/refine", handlers.RefineHandler(togetherAdapter, generatorSvc))
 		}
 	}
 

@@ -79,7 +79,7 @@ func (g *GeneratorService) GenerateWithUser(ctx context.Context, subject, scene,
 		}
 		// Record in DB if user_id is available
 		if userID != "" {
-			if err := g.SaveImageRecord(ctx, userID, key); err != nil {
+			if err := g.SaveImageRecord(ctx, userID, key, subject, scene, style, preset, width, height); err != nil {
 				log.Printf("WARNING: failed to save image record: %v", err)
 			}
 		}
@@ -104,13 +104,14 @@ func (g *GeneratorService) saveLocal(imgBytes []byte, key string) (string, error
 	return filename, nil
 }
 
-func (g *GeneratorService) SaveImageRecord(ctx context.Context, userID, key string) error {
+func (g *GeneratorService) SaveImageRecord(ctx context.Context, userID, key, subject, scene, style, preset string, width, height int) error {
 	if g.db == nil {
 		return nil
 	}
 	_, err := g.db.Exec(ctx,
-		`INSERT INTO generated_images (user_id, storage_key) VALUES ($1, $2)`,
-		userID, key,
+		`INSERT INTO generated_images (user_id, storage_key, subject_prompt, scene_prompt, style_prompt, style_preset, width, height)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+		userID, key, subject, scene, style, preset, width, height,
 	)
 	return err
 }

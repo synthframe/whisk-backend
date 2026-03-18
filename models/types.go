@@ -71,6 +71,24 @@ type SSEEvent struct {
 	Payload   interface{} `json:"payload"`
 }
 
+// Refine
+type RefineRequest struct {
+	SubjectPrompt string `json:"subject_prompt"`
+	ScenePrompt   string `json:"scene_prompt"`
+	StylePrompt   string `json:"style_prompt"`
+	StylePreset   string `json:"style_preset"`
+	Width         int    `json:"width"`
+	Height        int    `json:"height"`
+	Feedback      string `json:"feedback" binding:"required"`
+}
+
+type RefineResponse struct {
+	ImageURL      string `json:"image_url"`
+	SubjectPrompt string `json:"subject_prompt"`
+	ScenePrompt   string `json:"scene_prompt"`
+	StylePrompt   string `json:"style_prompt"`
+}
+
 // Health
 type HealthResponse struct {
 	Status  string `json:"status"`

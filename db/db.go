@@ -30,8 +30,27 @@ func Migrate(pool *pgxpool.Pool) error {
 			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 			user_id UUID REFERENCES users(id) ON DELETE CASCADE,
 			storage_key VARCHAR(500) NOT NULL,
+			subject_prompt TEXT DEFAULT '',
+			scene_prompt TEXT DEFAULT '',
+			style_prompt TEXT DEFAULT '',
+			style_preset VARCHAR(50) DEFAULT '',
+			width INT DEFAULT 1024,
+			height INT DEFAULT 1024,
 			created_at TIMESTAMPTZ DEFAULT NOW()
 		);
 	`)
-	return err
+	if err != nil {
+		return err
+	}
+	// Add columns to existing tables if not present (idempotent migration)
+	_, _ = pool.Exec(context.Background(), `
+		ALTER TABLE generated_images
+			ADD COLUMN IF NOT EXISTS subject_prompt TEXT DEFAULT '',
+			ADD COLUMN IF NOT EXISTS scene_prompt TEXT DEFAULT '',
+			ADD COLUMN IF NOT EXISTS style_prompt TEXT DEFAULT '',
+			ADD COLUMN IF NOT EXISTS style_preset VARCHAR(50) DEFAULT '',
+			ADD COLUMN IF NOT EXISTS width INT DEFAULT 1024,
+			ADD COLUMN IF NOT EXISTS height INT DEFAULT 1024;
+	`)
+	return nil
 }

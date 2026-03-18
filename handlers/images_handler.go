@@ -17,7 +17,8 @@ func UserImagesHandler(dbPool *pgxpool.Pool) gin.HandlerFunc {
 
 		userID := c.GetString("user_id")
 		rows, err := dbPool.Query(c.Request.Context(),
-			`SELECT id, storage_key, created_at FROM generated_images
+			`SELECT id, storage_key, subject_prompt, scene_prompt, style_prompt, style_preset, width, height, created_at
+			 FROM generated_images
 			 WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50`,
 			userID,
 		)
@@ -28,16 +29,22 @@ func UserImagesHandler(dbPool *pgxpool.Pool) gin.HandlerFunc {
 		defer rows.Close()
 
 		type ImageItem struct {
-			ID        string    `json:"id"`
-			URL       string    `json:"url"`
-			CreatedAt time.Time `json:"created_at"`
+			ID            string    `json:"id"`
+			URL           string    `json:"url"`
+			SubjectPrompt string    `json:"subject_prompt"`
+			ScenePrompt   string    `json:"scene_prompt"`
+			StylePrompt   string    `json:"style_prompt"`
+			StylePreset   string    `json:"style_preset"`
+			Width         int       `json:"width"`
+			Height        int       `json:"height"`
+			CreatedAt     time.Time `json:"created_at"`
 		}
 
 		var images []ImageItem
 		for rows.Next() {
 			var item ImageItem
 			var key string
-			if err := rows.Scan(&item.ID, &key, &item.CreatedAt); err != nil {
+			if err := rows.Scan(&item.ID, &key, &item.SubjectPrompt, &item.ScenePrompt, &item.StylePrompt, &item.StylePreset, &item.Width, &item.Height, &item.CreatedAt); err != nil {
 				continue
 			}
 			item.URL = "/outputs/" + key
