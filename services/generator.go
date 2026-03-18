@@ -13,6 +13,7 @@ var presetSuffixes = map[string]string{
 	"watercolor":     "watercolor painting, soft edges, translucent",
 	"pixel_art":      "pixel art, 16-bit, retro game style",
 	"sketched":       "pencil sketch, hand drawn, monochrome",
+	"pixar_3d":       "Pixar 3D animation style, vibrant colors, soft lighting, subsurface scattering, high detail, cinematic",
 }
 
 type GeneratorService struct {
