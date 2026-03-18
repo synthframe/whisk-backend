@@ -1,13 +1,12 @@
 package config
 
-import (
-	"os"
-)
+import "os"
 
 type Config struct {
 	TogetherAPIKey string
 	OutputDir      string
 	ServerPort     string
+	JWTSecret      string
 }
 
 func Load() *Config {
@@ -19,9 +18,14 @@ func Load() *Config {
 	if port == "" {
 		port = ":8080"
 	}
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		secret = "whisk-secret-key-change-in-production"
+	}
 	return &Config{
 		TogetherAPIKey: os.Getenv("TOGETHER_API_KEY"),
 		OutputDir:      outputDir,
 		ServerPort:     port,
+		JWTSecret:      secret,
 	}
 }

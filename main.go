@@ -5,6 +5,7 @@ import (
 	"whisk-clone/adapters"
 	"whisk-clone/config"
 	"whisk-clone/handlers"
+	"whisk-clone/middleware"
 	"whisk-clone/services"
 
 	"github.com/gin-contrib/cors"
@@ -26,6 +27,7 @@ func main() {
 	visionSvc := services.NewVisionService(togetherAdapter)
 	generatorSvc := services.NewGeneratorService(togetherAdapter, storage)
 	batchSvc := services.NewBatchService(generatorSvc)
+	authSvc := services.NewAuthService(cfg.JWTSecret)
 
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
@@ -44,13 +46,23 @@ func main() {
 
 	api := r.Group("/api")
 	{
+		// Public routes
 		api.GET("/health", handlers.HealthHandler(cfg))
-		api.POST("/analyze", handlers.AnalyzeHandler(visionSvc))
-		api.POST("/generate", handlers.GenerateHandler(generatorSvc))
-		api.GET("/generate/:id", handlers.GenerateStatusHandler())
-		api.POST("/batch", handlers.BatchCreateHandler(batchSvc))
-		api.GET("/batch/:id", handlers.BatchStatusHandler())
-		api.GET("/batch/:id/stream", handlers.BatchStreamHandler())
+		api.POST("/auth/register", handlers.RegisterHandler(authSvc))
+		api.POST("/auth/login", handlers.LoginHandler(authSvc))
+
+		// Protected routes
+		protected := api.Group("/")
+		protected.Use(middleware.Auth(authSvc))
+		{
+			protected.GET("/auth/me", handlers.MeHandler(authSvc))
+			protected.POST("/analyze", handlers.AnalyzeHandler(visionSvc))
+			protected.POST("/generate", handlers.GenerateHandler(generatorSvc))
+			protected.GET("/generate/:id", handlers.GenerateStatusHandler())
+			protected.POST("/batch", handlers.BatchCreateHandler(batchSvc))
+			protected.GET("/batch/:id", handlers.BatchStatusHandler())
+			protected.GET("/batch/:id/stream", handlers.BatchStreamHandler())
+		}
 	}
 
 	log.Printf("Server starting on %s", cfg.ServerPort)
