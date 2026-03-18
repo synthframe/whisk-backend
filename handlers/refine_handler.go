@@ -30,8 +30,7 @@ func RefineHandler(adapter *adapters.TogetherAI, generator *services.GeneratorSe
 			newSubject, newScene, newStyle = req.SubjectPrompt, req.ScenePrompt, req.StylePrompt
 		}
 
-		// For FLUX.2 reference-guided editing: explicitly tell the model to preserve the person from image 0
-		refinedPrompt := "The exact same person from image 0, " + generator.BuildPrompt(newSubject, newScene, newStyle, req.StylePreset)
+		refinedPrompt := generator.BuildPrompt(newSubject, newScene, newStyle, req.StylePreset)
 
 		var imgBytes []byte
 
