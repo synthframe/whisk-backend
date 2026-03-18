@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"sync"
 	"whisk-clone/models"
@@ -29,15 +30,16 @@ func GenerateHandler(generator *services.GeneratorService) gin.HandlerFunc {
 		}
 
 		id := uuid.New().String()
+		userID := c.GetString("user_id")
 		generateJobs.Store(id, &generateJob{Status: "processing"})
 
 		go func() {
-			filename, err := generator.Generate(req.SubjectPrompt, req.ScenePrompt, req.StylePrompt, req.StylePreset, req.Width, req.Height)
+			key, err := generator.GenerateWithUser(context.Background(), req.SubjectPrompt, req.ScenePrompt, req.StylePrompt, req.StylePreset, req.Width, req.Height, userID)
 			if err != nil {
 				generateJobs.Store(id, &generateJob{Status: "failed", Error: err.Error()})
 				return
 			}
-			generateJobs.Store(id, &generateJob{Status: "completed", ImageURL: "/outputs/" + filename})
+			generateJobs.Store(id, &generateJob{Status: "completed", ImageURL: "/outputs/" + key})
 		}()
 
 		c.JSON(http.StatusAccepted, models.GenerateResponse{
