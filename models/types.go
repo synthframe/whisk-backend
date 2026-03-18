@@ -80,6 +80,7 @@ type RefineRequest struct {
 	Width         int    `json:"width"`
 	Height        int    `json:"height"`
 	Feedback      string `json:"feedback" binding:"required"`
+	OriginalURL   string `json:"original_url"` // /outputs/gen_xxx.png — used as img2img reference
 }
 
 type RefineResponse struct {

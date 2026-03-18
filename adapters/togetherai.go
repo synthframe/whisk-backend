@@ -2,6 +2,7 @@ package adapters
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -135,6 +136,36 @@ func (t *TogetherAI) RefinePrompts(subject, scene, style, feedback string) (stri
 		result.StylePrompt = style
 	}
 	return result.SubjectPrompt, result.ScenePrompt, result.StylePrompt, nil
+}
+
+// Img2Img calls Cloudflare Workers AI SD 1.5 img2img to modify an existing image
+func (t *TogetherAI) Img2Img(imageBytes []byte, prompt string, strength float64) ([]byte, error) {
+	b64 := base64.StdEncoding.EncodeToString(imageBytes)
+	payload, err := json.Marshal(map[string]interface{}{
+		"image_base64": b64,
+		"prompt":       prompt,
+		"strength":     strength,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := t.HTTPClient.Post(
+		"https://whisk-image-gen.gimchan29.workers.dev/img2img",
+		"application/json",
+		bytes.NewReader(payload),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("img2img worker request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("img2img worker error %d: %s", resp.StatusCode, string(body))
+	}
+
+	return io.ReadAll(resp.Body)
 }
 
 func slotPrompt(slotType string) string {
