@@ -20,69 +20,41 @@ func NewTogetherAI(apiKey string) *TogetherAI {
 	}
 }
 
-// Vision: analyze image and return text description
+// Vision: analyze image via Cloudflare Workers AI (LLaVA 1.5)
 func (t *TogetherAI) AnalyzeImage(imageBase64 string, slotType string) (string, error) {
-	promptText := slotPrompt(slotType)
-
-	payload := map[string]interface{}{
-		"model": "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo",
-		"messages": []map[string]interface{}{
-			{
-				"role": "user",
-				"content": []map[string]interface{}{
-					{
-						"type": "image_url",
-						"image_url": map[string]string{
-							"url": "data:image/jpeg;base64," + imageBase64,
-						},
-					},
-					{
-						"type": "text",
-						"text": promptText,
-					},
-				},
-			},
-		},
-		"max_tokens": 200,
-	}
-
-	body, err := json.Marshal(payload)
+	payload, err := json.Marshal(map[string]interface{}{
+		"image_base64": imageBase64,
+		"slot_type":    slotType,
+	})
 	if err != nil {
 		return "", err
 	}
 
-	req, err := http.NewRequest("POST", "https://api.together.xyz/v1/chat/completions", bytes.NewReader(body))
+	resp, err := t.HTTPClient.Post(
+		"https://whisk-image-gen.teamxquare867.workers.dev/analyze",
+		"application/json",
+		bytes.NewReader(payload),
+	)
 	if err != nil {
-		return "", err
-	}
-	req.Header.Set("Authorization", "Bearer "+t.APIKey)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := t.HTTPClient.Do(req)
-	if err != nil {
-		return "", err
+		return "", fmt.Errorf("cloudflare worker vision request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		respBody, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("together.ai vision error %d: %s", resp.StatusCode, string(respBody))
+		return "", fmt.Errorf("cloudflare worker vision error %d: %s", resp.StatusCode, string(respBody))
 	}
 
 	var result struct {
-		Choices []struct {
-			Message struct {
-				Content string `json:"content"`
-			} `json:"message"`
-		} `json:"choices"`
+		Prompt string `json:"prompt"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return "", err
 	}
-	if len(result.Choices) == 0 {
-		return "", fmt.Errorf("no choices returned from vision API")
+	if result.Prompt == "" {
+		return "", fmt.Errorf("empty prompt from vision API")
 	}
-	return result.Choices[0].Message.Content, nil
+	return result.Prompt, nil
 }
 
 // GenerateImage: generate image via Cloudflare Workers AI (free, no credits required)
