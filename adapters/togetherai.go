@@ -14,6 +14,11 @@ type TogetherAI struct {
 	HTTPClient *http.Client
 }
 
+type RefineContextMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
 func NewTogetherAI(apiKey string) *TogetherAI {
 	return &TogetherAI{
 		APIKey:     apiKey,
@@ -92,12 +97,13 @@ func (t *TogetherAI) GenerateImage(prompt string, width, height int) ([]byte, er
 }
 
 // RefinePrompts calls Cloudflare Workers AI (Llama 3.1 8B) to refine image prompts based on user feedback
-func (t *TogetherAI) RefinePrompts(subject, scene, style, feedback string) (string, string, string, error) {
+func (t *TogetherAI) RefinePrompts(subject, scene, style, feedback string, history []RefineContextMessage) (string, string, string, error) {
 	payload, err := json.Marshal(map[string]interface{}{
 		"subject_prompt": subject,
 		"scene_prompt":   scene,
 		"style_prompt":   style,
 		"feedback":       feedback,
+		"history":        history,
 	})
 	if err != nil {
 		return subject, scene, style, err

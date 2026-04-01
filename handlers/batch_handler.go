@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"synthframe-api/models"
+	"synthframe-api/services"
 	"time"
-	"whisk-clone/models"
-	"whisk-clone/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"

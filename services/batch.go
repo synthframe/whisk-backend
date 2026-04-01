@@ -3,8 +3,8 @@ package services
 import (
 	"context"
 	"sync"
+	"synthframe-api/models"
 	"time"
-	"whisk-clone/models"
 )
 
 type BatchSession struct {

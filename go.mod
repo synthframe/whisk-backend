@@ -1,4 +1,4 @@
-module whisk-clone
+module synthframe-api
 
 go 1.24.0
 

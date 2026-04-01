@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"whisk-clone/adapters"
+	"synthframe-api/adapters"
 )
 
 type VisionService struct {

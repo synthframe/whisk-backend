@@ -3,12 +3,12 @@ package main
 import (
 	"log"
 	"net/http"
-	"whisk-clone/adapters"
-	"whisk-clone/config"
-	"whisk-clone/db"
-	"whisk-clone/handlers"
-	"whisk-clone/middleware"
-	"whisk-clone/services"
+	"synthframe-api/adapters"
+	"synthframe-api/config"
+	"synthframe-api/db"
+	"synthframe-api/handlers"
+	"synthframe-api/middleware"
+	"synthframe-api/services"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -58,7 +58,11 @@ func main() {
 			return
 		}
 		c.Header("Cache-Control", "public, max-age=86400")
-		c.Data(http.StatusOK, "image/png", data)
+		contentType := "image/jpeg"
+		if len(filename) >= 4 && filename[len(filename)-4:] == ".png" {
+			contentType = "image/png"
+		}
+		c.Data(http.StatusOK, contentType, data)
 	})
 
 	api := r.Group("/api")

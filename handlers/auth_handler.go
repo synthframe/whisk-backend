@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"net/http"
-	"whisk-clone/services"
+	"synthframe-api/services"
 
 	"github.com/gin-gonic/gin"
 )

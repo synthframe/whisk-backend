@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"net/http"
-	"whisk-clone/models"
-	"whisk-clone/services"
+	"synthframe-api/models"
+	"synthframe-api/services"
 
 	"github.com/gin-gonic/gin"
 )

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"whisk-clone/adapters"
+	"synthframe-api/adapters"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -69,10 +69,10 @@ func (g *GeneratorService) GenerateWithUser(ctx context.Context, subject, scene,
 		return "", err
 	}
 
-	key := fmt.Sprintf("gen_%s.png", uuid.New().String()[:8])
+	key := fmt.Sprintf("gen_%s.jpg", uuid.New().String()[:8])
 
 	if g.storage != nil {
-		if err := g.storage.Upload(ctx, key, imgBytes, "image/png"); err != nil {
+		if err := g.storage.Upload(ctx, key, imgBytes, "image/jpeg"); err != nil {
 			log.Printf("WARNING: S3 upload failed: %v — falling back to local storage", err)
 			// fallback to local storage
 			return g.saveLocal(imgBytes, key)

@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 	"sync"
-	"whisk-clone/models"
-	"whisk-clone/services"
+	"synthframe-api/models"
+	"synthframe-api/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"

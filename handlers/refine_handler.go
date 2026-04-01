@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"whisk-clone/adapters"
-	"whisk-clone/models"
-	"whisk-clone/services"
+	"synthframe-api/adapters"
+	"synthframe-api/models"
+	"synthframe-api/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -22,8 +22,16 @@ func RefineHandler(adapter *adapters.TogetherAI, generator *services.GeneratorSe
 		}
 
 		// 1. Refine prompts via Cloudflare Workers AI (Llama 3.1 8B)
+		history := make([]adapters.RefineContextMessage, 0, len(req.History))
+		for _, msg := range req.History {
+			if msg.Role == "" || msg.Content == "" {
+				continue
+			}
+			history = append(history, adapters.RefineContextMessage{Role: msg.Role, Content: msg.Content})
+		}
+
 		newSubject, newScene, newStyle, err := adapter.RefinePrompts(
-			req.SubjectPrompt, req.ScenePrompt, req.StylePrompt, req.Feedback,
+			req.SubjectPrompt, req.ScenePrompt, req.StylePrompt, req.Feedback, history,
 		)
 		if err != nil {
 			log.Printf("RefinePrompts error: %v — using original prompts", err)
@@ -36,7 +44,7 @@ func RefineHandler(adapter *adapters.TogetherAI, generator *services.GeneratorSe
 
 		// 2. If original image URL provided, do img2img (preserves structure)
 		if req.OriginalURL != "" && storage != nil {
-			// Extract storage key from /outputs/gen_xxx.png
+			// Extract storage key from /outputs/gen_xxx.jpg
 			key := strings.TrimPrefix(req.OriginalURL, "/outputs/")
 			origBytes, err := storage.Download(c.Request.Context(), key)
 			if err == nil {
@@ -67,11 +75,11 @@ func RefineHandler(adapter *adapters.TogetherAI, generator *services.GeneratorSe
 		}
 
 		// 4. Save to storage and DB
-		key := fmt.Sprintf("gen_%s.png", uuid.New().String()[:8])
+		key := fmt.Sprintf("gen_%s.jpg", uuid.New().String()[:8])
 		userID := c.GetString("user_id")
 
 		if storage != nil {
-			if err := storage.Upload(c.Request.Context(), key, imgBytes, "image/png"); err != nil {
+			if err := storage.Upload(c.Request.Context(), key, imgBytes, "image/jpeg"); err != nil {
 				log.Printf("Storage upload error: %v", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "storage upload failed"})
 				return

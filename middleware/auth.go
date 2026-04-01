@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 	"strings"
-	"whisk-clone/services"
+	"synthframe-api/services"
 
 	"github.com/gin-gonic/gin"
 )

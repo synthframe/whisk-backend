@@ -73,14 +73,20 @@ type SSEEvent struct {
 
 // Refine
 type RefineRequest struct {
-	SubjectPrompt string `json:"subject_prompt"`
-	ScenePrompt   string `json:"scene_prompt"`
-	StylePrompt   string `json:"style_prompt"`
-	StylePreset   string `json:"style_preset"`
-	Width         int    `json:"width"`
-	Height        int    `json:"height"`
-	Feedback      string `json:"feedback" binding:"required"`
-	OriginalURL   string `json:"original_url"` // /outputs/gen_xxx.png — used as img2img reference
+	SubjectPrompt string                 `json:"subject_prompt"`
+	ScenePrompt   string                 `json:"scene_prompt"`
+	StylePrompt   string                 `json:"style_prompt"`
+	StylePreset   string                 `json:"style_preset"`
+	Width         int                    `json:"width"`
+	Height        int                    `json:"height"`
+	Feedback      string                 `json:"feedback" binding:"required"`
+	OriginalURL   string                 `json:"original_url"` // /outputs/gen_xxx.png — used as img2img reference
+	History       []RefineContextMessage `json:"history,omitempty"`
+}
+
+type RefineContextMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
 }
 
 type RefineResponse struct {
@@ -92,7 +98,7 @@ type RefineResponse struct {
 
 // Health
 type HealthResponse struct {
-	Status  string `json:"status"`
-	Model   string `json:"model"`
-	APIKey  bool   `json:"api_key_set"`
+	Status string `json:"status"`
+	Model  string `json:"model"`
+	APIKey bool   `json:"api_key_set"`
 }
